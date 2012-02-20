@@ -1,10 +1,12 @@
 using System;
+using Transport;
 
 public class Dagatal
 {
     public static void Main()
     {
         Logik logik = new Logik();
+        logik.fileCheck();
         System.Console.WriteLine(logik.fetchCurrDay());
     }
 }
@@ -56,10 +58,17 @@ public class Logik
         return currString;
     }
 
-    void fileCheck()
+    public void fileCheck()
     {
         // Test if file available for day and create one if not available.
-        //days = Value.MakeTable();
+        Value days = Value.MakeTable();
+        string filename = currDay + ".dat";
+        try
+        {
+            days = Value.LoadFile(filename);
+        } catch(System.IO.FileNotFoundException e) {
+            System.IO.File.Create(filename);
+        }
     }
 
 }
