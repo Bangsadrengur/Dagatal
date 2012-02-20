@@ -2,6 +2,7 @@ using Gtk;
 using System;
 using Transport;
 
+// Master class for program. Is just for the main function.
 public class Dagatal
 {
     public static void Main()
@@ -9,8 +10,12 @@ public class Dagatal
         Vidmot vidmot = new Vidmot();
     }
 }
+
+// GUI class.
 public class Vidmot
 {
+
+    // Gui variables.
     Window win;
     VBox vb;
     ScrolledWindow sw;
@@ -31,6 +36,7 @@ public class Vidmot
         cal = new Calendar();
         tvBuffer = tv.Buffer;
 
+        // TextView buffer set.
         tvBuffer.Text = logik.fetchCurrString();
 
         sw.Add(tv);
@@ -40,11 +46,16 @@ public class Vidmot
 
         win.ShowAll();
 
+        // On hide we save to file and close application.
         win.Hidden += delegate
         {
+            logik.saveDiary();
             Application.Quit();
         };
 
+        // When a new day is selected we send the logic class the new date as
+        // a string, we send the text that belonged to the previous date,
+        // we update the textview field.
         cal.DaySelected += delegate
         {
             string newDate = cal.GetDate().ToString("yyyyMMdd");
@@ -63,15 +74,27 @@ public class Vidmot
 
 public class Logik
 {
+    // currDay is the current active date.
+    // currString is the current active content.
+    // filename is the name of the database file which must
+    // exist beforehand.
+    // days is a the database variable of type Transport.Value.
     private string currDay, currString, filename;
     Value days;
 
     public Logik()
     {
+        // Constructor for class. Sets date to today.
         currDay = DateTime.Now.ToString("yyyyMMdd");
         filename = "calendardb.dat";
-        currString = "";
         days = Value.LoadFile(filename);
+        try
+        {
+            currString = (string) days[currDay];
+        } catch(NullReferenceException e) 
+        {
+            currString = "";
+        }
     }
 
     public void loadDay(string dagur, string exString)
@@ -98,5 +121,11 @@ public class Logik
     {
         // Return the text of the selected day of in the logic part.
         return currString;
+    }
+
+    public void saveDiary()
+    {
+        // Saves all changes to file.
+        Value.SaveFile(days, filename);
     }
 }
