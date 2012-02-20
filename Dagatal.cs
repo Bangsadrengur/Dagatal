@@ -1,13 +1,10 @@
 using System;
-using Transport;
 
 public class Dagatal
 {
     public static void Main()
     {
         Logik logik = new Logik();
-        logik.fileCheck();
-        System.Console.WriteLine(logik.fetchCurrDay());
     }
 }
 public class Vidmot
@@ -16,35 +13,46 @@ public class Vidmot
 
 public class Logik
 {
-    private string currDay, currString;
+    private string currDay, currString, filename;
 
     public Logik()
     {
         currDay = DateTime.Now.ToString("yyyyMMdd");
-        currString = loadDay(currDay);
+        filename = "calendardb.dat";
+        currString = "";
+        loadDay(currDay);
     }
 
-    void closeDay(string dagur, string strengur)
+    void closeDay()
     {
         // update database
-        System.Console.WriteLine("Lokum degi: " + dagur +
-                " með því að uppfæra hann með texta: " +
-                strengur);
+        fileCheck();
+        days[currDay] = currString;
     }
 
-    string loadDay(string dagur)
+    void loadDay(string dagur)
     {
         // Retrieve from database
-        return "Herp derp derp";
+        closeDay();
+        currDay = dagur;
+        Value days = Value.MakeTable();
+        days = Value.LoadFile(filename);
+        try
+          {
+          currString = (string) days[currDay];
+          } catch(NullReferenceException e) 
+          {
+          currString = "";
+          }
     }
 
-    void switchDay(string dagur)
-    {
-        // Close current day and load a new one.
-        closeDay(currDay, currString);
-        currString = loadDay(dagur);
-        currDay = dagur;
-    }
+    /*void switchDay(string dagur)
+      {
+    // Close current day and load a new one.
+    closeDay();
+    currString = loadDay(dagur);
+    currDay = dagur;
+    }*/
 
     public string fetchCurrDay()
     {
@@ -58,17 +66,20 @@ public class Logik
         return currString;
     }
 
-    public void fileCheck()
+    void fileCheck()
     {
-        // Test if file available for day and create one if not available.
-        Value days = Value.MakeTable();
-        string filename = currDay + ".dat";
+        // Tests if calendar entry file exists and creates and initializes one
+        // if needed.
+        Value days;
         try
         {
             days = Value.LoadFile(filename);
         } catch(System.IO.FileNotFoundException e) {
             System.IO.File.Create(filename);
+        } catch(System.IO.EndOfStreamException f) {
+            days = Value.MakeTable();
+            days[currDay] = "";
+            Value.SaveFile(days, filename);
         }
     }
-
 }
